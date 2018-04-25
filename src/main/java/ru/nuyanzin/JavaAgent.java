@@ -47,7 +47,8 @@ public class JavaAgent
             File file = new File(config);
             if(!file.exists()) return null;  //not empty as it will be used for refill
             JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-            PropertiesType javaProperties = ((JAXBElement<PropertiesType>) jaxbContext.createUnmarshaller().unmarshal(file)).getValue();
+            PropertiesType javaProperties =
+                    ((JAXBElement<PropertiesType>) jaxbContext.createUnmarshaller().unmarshal(file)).getValue();
 
             return javaProperties;
         }

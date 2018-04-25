@@ -12,13 +12,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-public class ClientLoader
-{
+public class ClientLoader {
     public static final String LOAD_AGENT = "loadAgent";
     public static final String PROPERTIES_CONFIG_XML = "PropertiesConfig.xml";
     public static final String AGENTS_XML = "Agents.xml";
 
-    public static void main(String[] args) throws Exception  {
+    public static void main(String[] args) throws Exception {
 
         URLClassLoader loader = getClassLoader();
         Class<?> utilityClass = loader.loadClass("com.sun.tools.attach.VirtualMachine");
@@ -28,15 +27,15 @@ public class ClientLoader
                 .getCodeSource()
                 .getLocation()
                 .getPath());
-        utilityClass.getMethod(LOAD_AGENT, String.class).invoke(vm, currentJar.getAbsolutePath() + "=" + currentJar.getParentFile().getAbsolutePath() + File.separator + PROPERTIES_CONFIG_XML);
+        utilityClass.getMethod(LOAD_AGENT, String.class).invoke(vm,
+                currentJar.getAbsolutePath() + "=" + currentJar.getParentFile().getAbsolutePath()
+                        + File.separator + PROPERTIES_CONFIG_XML);
         AgentsType agentsType = getAgents(AGENTS_XML);
-        if(agentsType == null || agentsType.getAgent() == null || agentsType.getAgent().isEmpty())
-        {
+        if (agentsType == null || agentsType.getAgent() == null || agentsType.getAgent().isEmpty()) {
             System.out.println("No agents to load");
             return;
         }
-        for(String agent: agentsType.getAgent())
-        {
+        for (String agent : agentsType.getAgent()) {
             utilityClass.getMethod(LOAD_AGENT, String.class).invoke(vm, agent);
         }
     }
@@ -44,15 +43,14 @@ public class ClientLoader
     private static URLClassLoader getClassLoader() throws IOException {
         File javaHome = new File(System.getProperty("java.home"));
         JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
-        if(javaCompiler == null)
-        {
+        if (javaCompiler == null) {
             System.out.println("Please specify path to jdk installed");
             System.exit(1);
         }
         String toolsPath = (javaHome.getName().equalsIgnoreCase("jre")
                 ? ".." + File.separator : "") + "lib" + File.separator + "tools.jar";
 
-        URL[] urls = new URL[] {
+        URL[] urls = new URL[]{
                 ClientLoader.class.getProtectionDomain().getCodeSource().getLocation(),
                 new File(javaHome, toolsPath).getCanonicalFile().toURI().toURL(),
         };
@@ -60,16 +58,13 @@ public class ClientLoader
         return new URLClassLoader(urls, null);
     }
 
-    private static AgentsType getAgents(String config)
-    {
+    private static AgentsType getAgents(String config) {
         try {
             File file = new File(config);
-            if(!file.exists()) return null;  //not empty as it will be used for refill
+            if (!file.exists()) return null;  //not empty as it will be used for refill
             JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
             return ((JAXBElement<AgentsType>) jaxbContext.createUnmarshaller().unmarshal(file)).getValue();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }

@@ -83,7 +83,6 @@ public class ClientLoader {
         NumberFormat formatter = NumberFormat.getInstance();
         ParsePosition pos = new ParsePosition(0);
         formatter.parse(str, pos);
-        System.out.println(pos.getIndex());
         return str.length() == pos.getIndex();
     }
 }

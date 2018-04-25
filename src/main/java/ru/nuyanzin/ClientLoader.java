@@ -11,16 +11,24 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
+import java.util.Arrays;
 
 public class ClientLoader {
-    public static final String LOAD_AGENT = "loadAgent";
-    public static final String PROPERTIES_CONFIG_XML = "PropertiesConfig.xml";
-    public static final String AGENTS_XML = "Agents.xml";
+    private static final String LOAD_AGENT = "loadAgent";
+    private static final String PROPERTIES_CONFIG_XML = "PropertiesConfig.xml";
+    private static final String AGENTS_XML = "Agents.xml";
 
     public static void main(String[] args) throws Exception {
 
         URLClassLoader loader = getClassLoader();
         Class<?> utilityClass = loader.loadClass("com.sun.tools.attach.VirtualMachine");
+
+        if (args.length < 1 || !isNumeric(args[0])) {
+            throw new RuntimeException("Please specify correct PID instead of "
+                    + (args.length > 0 ? args[0] : Arrays.toString(args)));
+        }
 
         Object vm = utilityClass.getMethod("attach", String.class).invoke(null, args[0]);
         File currentJar = new File(ClientLoader.class.getProtectionDomain()
@@ -69,5 +77,12 @@ public class ClientLoader {
             System.exit(1);
         }
         return null;
+    }
+
+    private static boolean isNumeric(String str) {
+        NumberFormat formatter = NumberFormat.getInstance();
+        ParsePosition pos = new ParsePosition(0);
+        formatter.parse(str, pos);
+        return str.length() == pos.getIndex();
     }
 }

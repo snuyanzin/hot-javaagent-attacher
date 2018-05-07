@@ -34,7 +34,9 @@ public class JavaAgent
 
     private static void setJavaProperties(String config)
     {
-        for(PropertyType javaProperty: getJavaProperties(config).getProperty())
+        PropertiesType javaProperties = getJavaProperties(config);
+        if(javaProperties == null) return;
+        for(PropertyType javaProperty: javaProperties.getProperty())
         {
             System.setProperty(javaProperty.getName(), javaProperty.getValue());
         }
@@ -47,10 +49,8 @@ public class JavaAgent
             File file = new File(config);
             if(!file.exists()) return null;  //not empty as it will be used for refill
             JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-            PropertiesType javaProperties =
-                    ((JAXBElement<PropertiesType>) jaxbContext.createUnmarshaller().unmarshal(file)).getValue();
 
-            return javaProperties;
+            return ((JAXBElement<PropertiesType>) jaxbContext.createUnmarshaller().unmarshal(file)).getValue();
         }
         catch (Exception e)
         {
@@ -58,5 +58,9 @@ public class JavaAgent
             System.exit(1);
         }
         return null;
+    }
+
+    static boolean needToLoad(){
+        return inst == null;
     }
 }

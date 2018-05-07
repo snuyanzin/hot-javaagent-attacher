@@ -9,6 +9,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.NumberFormat;
@@ -31,21 +32,20 @@ public class ClientLoader {
         }
 
         Object vm = utilityClass.getMethod("attach", String.class).invoke(null, args[0]);
-        File currentJar = new File(ClientLoader.class.getProtectionDomain()
-                .getCodeSource()
-                .getLocation()
-                .getPath());
-        utilityClass.getMethod(LOAD_AGENT, String.class).invoke(vm,
-                currentJar.getAbsolutePath() + "=" + currentJar.getParentFile().getAbsolutePath()
-                        + File.separator + PROPERTIES_CONFIG_XML);
+        loadJavaAgentIfNotLoaded(utilityClass, vm);
+
         AgentsType agentsType = getAgents(AGENTS_XML);
         if (agentsType == null || agentsType.getAgent() == null || agentsType.getAgent().isEmpty()) {
             System.out.println("No agents to load");
             return;
         }
+
         for (String agent : agentsType.getAgent()) {
             utilityClass.getMethod(LOAD_AGENT, String.class).invoke(vm, agent);
+            System.out.println(agent + " has been loaded");
         }
+
+        utilityClass.getMethod("detach").invoke(vm);
     }
 
     private static URLClassLoader getClassLoader() throws IOException {
@@ -84,5 +84,18 @@ public class ClientLoader {
         ParsePosition pos = new ParsePosition(0);
         formatter.parse(str, pos);
         return str.length() == pos.getIndex();
+    }
+
+    private static void loadJavaAgentIfNotLoaded(Class<?> utilityClass, Object vm) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        if(JavaAgent.needToLoad()) {
+
+            File currentJar = new File(ClientLoader.class.getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .getPath());
+            utilityClass.getMethod(LOAD_AGENT, String.class).invoke(vm,
+                    currentJar.getAbsolutePath() + "=" + currentJar.getParentFile().getAbsolutePath()
+                            + File.separator + PROPERTIES_CONFIG_XML);
+        }
     }
 }

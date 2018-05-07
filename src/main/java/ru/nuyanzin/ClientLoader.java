@@ -41,6 +41,7 @@ public class ClientLoader {
         }
 
         for (String agent : agentsType.getAgent()) {
+            System.out.println("Loading agent " + agent);
             utilityClass.getMethod(LOAD_AGENT, String.class).invoke(vm, agent);
             System.out.println(agent + " has been loaded");
         }
